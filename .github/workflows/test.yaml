@@ -9,6 +9,12 @@ jobs:
         with:
           submodules: recursive
 
+      # Build Verilog if necessary from, e.g. TL-Verilog.
+      - name: Build Verilog
+        run: |
+          cd test
+          make verilog
+
       - name: Install iverilog
         shell: bash
         run: sudo apt-get update && sudo apt-get install -y iverilog

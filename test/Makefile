@@ -4,8 +4,8 @@
 # defaults
 SIM ?= icarus
 TOPLEVEL_LANG ?= verilog
-SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = project.v
+SRC_DIR := $(realpath $(PWD)/../src)
+PROJECT_SOURCES = project.sv   # Specify xxx.sv even if the true source is xxx.tlv.
 
 ifneq ($(GATES),yes)
 
@@ -38,5 +38,25 @@ TOPLEVEL = tb
 # MODULE is the basename of the Python test file
 MODULE = test
 
-# include cocotb's make rules to take care of the simulator setup
+# include cocotb's make rules to take care of the simulator setup (unless we're just building Verilog sources)
+ifneq ($(MAKECMDGOALS),verilog)
 include $(shell cocotb-config --makefiles)/Makefile.sim
+endif
+
+
+
+#-------------------
+# For TL-Verilog.
+
+# Verilog from TL-Verilog, including installation of SandPiper-SaaS.
+$(SRC_DIR)/%.sv: $(SRC_DIR)/%.tlv
+	@pip show sandpiper-saas > /dev/null || (echo "Installing sandpiper-saas..." && pip install sandpiper-saas && touch ~/.makerchip_accepted)
+	@pip show sandpiper-saas > /dev/null || (echo "Failed to install sandpiper-saas, please install manually." && exit 1)
+	cd $(SRC_DIR) && sandpiper-saas -i '$(<F)' -o '$(@F)' --outdir . --inlineGen --noDirectiveComments --noline --clkAlways --bestsv --debugSigsYosys --iArgs
+
+#-------------------
+
+
+# Use this target to ensure that Verilog "sources" are built, in case any are generated.
+.PHONY: verilog
+verilog: $(VERILOG_SOURCES)
