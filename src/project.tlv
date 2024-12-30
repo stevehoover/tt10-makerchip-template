@@ -11,6 +11,8 @@
 
    // ---SETTINGS---
    var(my_design, tt_um_example)  /// Change tt_um_example to tt_um_<your-github-username>_<name-of-your-project>. (See README.md.)
+   var(target, TT10) /// Use "FPGA" for TT03 Demo Boards (without bidirectional I/Os).
+   var(in_fpga, 1)   /// 1 to include the demo board visualization. (Note: Logic will be under /fpga_pins/fpga.)
    var(debounce_inputs, 0)
                      /// Legal values:
                      ///   1: Provide synchronization and debouncing on all input signals.
@@ -21,6 +23,8 @@
    // If debouncing, your top module is wrapped within a debouncing module, so it has a different name.
    var(user_module_name, m5_if(m5_debounce_inputs, my_design, m5_my_design))
    var(debounce_cnt, m5_if_defined_as(MAKERCHIP, 1, 8'h03, 8'hff))
+   // No TT lab outside of Makerchip.
+   if_defined_as(MAKERCHIP, 1, [''], ['m5_set(in_fpga, 0)'])
 \SV
    // Include Tiny Tapeout Lab.
    m4_include_lib(['https:/']['/raw.githubusercontent.com/os-fpga/Virtual-FPGA-Lab/35e36bd144fddd75495d4cbc01c4fc50ac5bde6f/tlv_lib/tiny_tapeout_lib.tlv'])
@@ -36,6 +40,18 @@
    // ============================================
 
    // ...
+
+
+// Set up the Tiny Tapeout lab environment.
+\TLV tt_lab()
+   /* verilator lint_off UNOPTFLAT */
+   // Connect Tiny Tapeout I/Os to Virtual FPGA Lab.
+   m5+tt_connections()
+
+   // Instantiate the Virtual FPGA Lab.
+   m5+board(/top, /fpga, 7, $, , my_design)
+   // Label the switch inputs [0..7] (1..8 on the physical switch panel) (bottom-to-top).
+   m5+tt_input_labels_viz(['"UNUSED", "UNUSED", "UNUSED", "UNUSED", "UNUSED", "UNUSED", "UNUSED", "UNUSED"'])
 
 \SV
 
@@ -70,16 +86,19 @@ module top(input logic clk, input logic reset, input logic [31:0] cyc_cnt, outpu
    */
 
    // Instantiate the Tiny Tapeout module.
-   m5_user_module_name tt(.*);
+   // TODO: Fix other gian-course and ChipCraft course templates to use m5_my_design.
+   m5_my_design tt(.*);
 
    assign passed = cyc_cnt > 100;
    assign failed = 1'b0;
 endmodule
 
 // Provide a wrapper module to debounce input signals if requested.
+// TODO: The debounce module is conditioned for TT03.
 m5_if(m5_debounce_inputs, ['m5_tt_top(m5_my_design)'])
 // The above macro expands to multiple lines. We enter a new \SV block to reset line tracking.
 \SV
+
 
 
 // The Tiny Tapeout module.
@@ -97,14 +116,7 @@ module m5_user_module_name (
    wire reset = ! rst_n;
 
 \TLV
-   /* verilator lint_off UNOPTFLAT */
-   // Connect Tiny Tapeout I/Os to Virtual FPGA Lab.
-   m5+tt_connections()
-
-   // Instantiate the Virtual FPGA Lab.
-   m5+board(/top, /fpga, 7, $, , my_design)
-   // Label the switch inputs [0..7] (1..8 on the physical switch panel) (bottom-to-top).
-   m5+tt_input_labels_viz(['"UNUSED", "UNUSED", "UNUSED", "UNUSED", "UNUSED", "UNUSED", "UNUSED", "UNUSED"'])
+   m5_if(m5_in_fpga, ['m5+tt_lab()'], ['m5+my_design()'])
 
 \SV_plus
 
