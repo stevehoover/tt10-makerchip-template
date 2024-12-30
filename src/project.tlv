@@ -116,7 +116,7 @@ module m5_user_module_name (
    wire reset = ! rst_n;
 
    // List all potentially-unused inputs to prevent warnings
-   (* keep *) wire _unused = &{ena, clk, reset, ui_in, uio_in, 1'b0};
+   (* keep *) wire _unused = &{ena, clk, reset, ui_in, uio_in, 1'b1};
 
 \TLV
    m5_if(m5_in_fpga, ['m5+tt_lab()'], ['m5+my_design()'])
