@@ -1,4 +1,4 @@
-\m5_TLV_version 1d: tl-x.org
+\m5_TLV_version 1d --debugSigsYosys: tl-x.org
 \m5
    /**
    This template is for developing Tiny Tapeout designs using Makerchip.
@@ -116,7 +116,7 @@ module m5_user_module_name (
    wire reset = ! rst_n;
 
    // List all potentially-unused inputs to prevent warnings
-   wire _unused = &{ena, clk, rst_n, ui_in, uio_in, 1'b0};
+   (* keep *) wire _unused = &{ena, clk, reset, ui_in, uio_in, 1'b0};
 
 \TLV
    m5_if(m5_in_fpga, ['m5+tt_lab()'], ['m5+my_design()'])
@@ -132,9 +132,9 @@ module m5_user_module_name (
 
 
    // Connect Tiny Tapeout outputs.
-   // Note that my_design will be under /fpga_pins/fpga.
+   // Note that my_design will be under /fpga_pins/fpga if m5_in_fpga.
    // Example *uo_out = /fpga_pins/fpga|my_pipe>>3$uo_out;
-   assign *uo_out = 8'b0;
+   assign *uo_out = ui_in /*+ uio_in*/;  // Avoid unused inputs.
    assign *uio_out = 8'b0;
    assign *uio_oe = 8'b0;
 
