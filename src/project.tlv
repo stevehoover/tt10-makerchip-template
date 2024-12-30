@@ -116,7 +116,7 @@ module m5_user_module_name (
    wire reset = ! rst_n;
 
    // List all potentially-unused inputs to prevent warnings
-   (* keep *) wire _unused = &{ena, clk, reset, ui_in, uio_in, 1'b0};
+   wire _unused = &{ena, clk, reset, ui_in, uio_in, 1'b0};
 
 \TLV
    m5_if(m5_in_fpga, ['m5+tt_lab()'], ['m5+my_design()'])
@@ -134,7 +134,7 @@ module m5_user_module_name (
    // Connect Tiny Tapeout outputs.
    // Note that my_design will be under /fpga_pins/fpga if m5_in_fpga.
    // Example *uo_out = /fpga_pins/fpga|my_pipe>>3$uo_out;
-   assign *uo_out = ui_in /*+ uio_in*/;  // Avoid unused inputs.
+   assign *uo_out = 8'b0;  // Avoid unused inputs.
    assign *uio_out = 8'b0;
    assign *uio_oe = 8'b0;
 
